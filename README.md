@@ -1,154 +1,165 @@
-Twitch Chat Translator
-A lightweight Chrome/Edge extension that automatically translates Twitch chat messages in real time.
-Designed for stream viewers who enjoy international communities and want translated chat without leaving Twitch.
-Features
+# 🌐 Twitch Chat Translator
 
-Real-time Twitch chat translation
-Supports 20+ languages
-Auto language detection
-Instant language switching
-Efficient batched translation requests
-Smart viewport detection
-Automatic Twitch navigation handling
-Preserves chat scrolling behavior
-Enable/disable translation with one click
-Low CPU and memory usage
+⚡ A lightweight **Chrome/Edge extension** that automatically translates Twitch chat messages in real time.  
+🌍 Designed for stream viewers who enjoy international communities and want translations without leaving Twitch.
 
-Supported Languages
+---
 
-Auto Detect
-English
-Spanish
-Portuguese
-Portuguese (Brazil)
-French
-German
-Italian
-Dutch
-Russian
-Polish
-Turkish
-Arabic
-Hindi
-Urdu
-Indonesian
-Vietnamese
-Thai
-Korean
-Japanese
-Chinese (Simplified)
-Chinese (Traditional)
+# ✨ Features
 
-How It Works
-The extension watches Twitch chat for new messages and automatically translates them using Google's public translation endpoint.
-Messages are collected into small batches before being translated. This reduces network overhead and improves performance during fast-moving chats.
-Only messages that are visible (or about to become visible) are translated, preventing wasted work on messages the user will never see.
-Performance Optimizations
-Batched Processing
-Instead of translating every message individually, messages are grouped into batches.
-Default settings:
+💬 Real-time Twitch chat translation  
+🌎 Supports 20+ languages  
+🧠 Auto language detection  
+⚡ Instant language switching  
+📦 Efficient batched translation requests  
+👁️ Smart viewport detection  
+🔄 Automatic Twitch navigation handling  
+📜 Preserves chat scrolling behavior  
+🎛️ Enable/disable translation with one click  
+🪶 Low CPU and memory usage  
 
-Batch Size: 12 messages
-Parallel Batches: 6
-Batch Window: 50ms
+---
 
-Viewport Intelligence
-Messages are only translated when:
+# 🌍 Supported Languages
 
-Visible on screen
-Near the visible chat area
+🤖 Auto Detect  
+🇺🇸 English  
+🇪🇸 Spanish  
+🇵🇹 Portuguese  
+🇧🇷 Portuguese (Brazil)  
+🇫🇷 French  
+🇩🇪 German  
+🇮🇹 Italian  
+🇳🇱 Dutch  
+🇷🇺 Russian  
+🇵🇱 Polish  
+🇹🇷 Turkish  
+🇸🇦 Arabic  
+🇮🇳 Hindi  
+🇵🇰 Urdu  
+🇮🇩 Indonesian  
+🇻🇳 Vietnamese  
+🇹🇭 Thai  
+🇰🇷 Korean  
+🇯🇵 Japanese  
+🇨🇳 Chinese (Simplified)  
+🇹🇼 Chinese (Traditional)  
 
-This significantly reduces translation requests in high-volume channels.
-Smart Scroll Preservation
-The extension preserves Twitch's natural scrolling behavior:
+---
 
-Follows chat when at the bottom
-Temporarily pauses auto-follow when the user scrolls
-Automatically resumes when appropriate
+# ⚙️ How It Works
 
-Dynamic Twitch Navigation Support
-The extension detects Twitch's single-page navigation system and automatically reconnects when changing channels without requiring a page refresh.
-Installation
-Developer Installation
+🧩 Watches Twitch chat for new messages and translates them automatically using a translation service.
 
+📦 Messages are grouped into batches to improve performance:
+- Reduces network requests  
+- Handles fast-moving chats efficiently  
 
-Download or clone this repository.
+👁️ Only visible or near-visible messages are processed  
+→ avoids unnecessary work on off-screen content  
 
+---
 
-Open Chrome or Edge.
+# 🚀 Performance Optimizations
 
+## 📦 Batched Processing
+- Batch Size: 12 messages  
+- Parallel Batches: 6  
+- Batch Window: 50ms  
 
-Navigate to:
+---
 
+## 👁️ Viewport Intelligence
+Only translates messages that are:
+- Visible on screen  
+- Near the chat viewport  
 
-chrome://extensions
+---
 
+## 🔄 Smart Scroll Preservation
+- Follows chat when user is at bottom  
+- Pauses when user scrolls up  
+- Resumes automatically  
 
-Enable:
+---
 
-Developer Mode
+## 🌐 Dynamic Twitch Navigation Support
+- Detects Twitch SPA navigation  
+- Reconnects automatically  
+- No refresh required  
 
+---
 
-Click:
+# 📥 Installation
 
-Load Unpacked
+## 🧑‍💻 Developer Mode (Chrome / Edge)
 
+1. Download or clone this repository  
+2. Open Chrome / Edge  
+3. Go to: chrome://extensions
+4. Enable **Developer Mode** 🧪  
+5. Click **Load Unpacked** 📦  
+6. Select the extension folder  
+7. Open Twitch and start using it 🎉  
 
+---
 
-Select the extension folder.
+# 🎮 Usage
 
+1. Open any Twitch stream  
+2. Click the extension icon 🧩  
+3. Select your target language 🌍  
+4. Click **Enable Translation**  
+5. Watch chat translate in real time ⚡  
 
-Open Twitch and begin using the extension.
+---
 
+# 🔐 Permissions
 
-Usage
+## 💾 Storage Access
+Stores:
+- Language preferences  
+- Enabled state  
 
-Open any Twitch stream.
-Click the extension icon.
-Select your target language.
-Click Enable Translation.
-Incoming chat messages will be translated automatically.
+## 🌐 Twitch Page Access
+Allows:
+- Reading chat messages  
+- Injecting translations  
 
-Language changes take effect instantly.
-Permissions
-The extension requires:
+---
 
-
-Storage access
-
-Saves language preferences and enabled state.
-
-
-
-Twitch page access
-
-Reads and updates Twitch chat messages.
-
-
-
-Twitch-Chat-Translator/
+# 📁 Project Structure Twitch-Chat-Translator/
 ├── manifest.json
 ├── popup.html
 ├── styles.css
-├── js/
-│   ├── popup.js
-│   ├── content.js
-│   └── background.js
+├── README.md
 ├── icons/
 │   ├── icon16.png
 │   ├── icon48.png
 │   └── icon128.png
-└── README.md
+└── js/
+    ├── popup.js
+    ├── content.js
+    └── background.js
 
-Notes
+---
 
-Works only on Twitch.
-Existing messages are not retroactively translated.
-Translation quality depends on the underlying translation service.
-Intended for personal use, language learning, and community participation.
+# 📝 Notes
 
-License
+⚠️ Works only on Twitch  
+⏳ Existing messages are not translated retroactively  
+🌐 Translation quality depends on external service  
+🧪 Intended for personal use, learning, and community interaction  
 
-This project is licensed under the MIT License.
+---
 
-You are free to use, modify, and distribute this software with attribution.
+# 📜 License
+
+MIT License
+
+You are free to:
+- Use  
+- Modify  
+- Distribute  
+
+With attribution.
