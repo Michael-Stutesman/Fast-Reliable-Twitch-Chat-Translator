@@ -1,6 +1,6 @@
-let l=null,v=null,u=location.href;
-let uid=0;
-let chatEl=null;
+let l = null, v = null, u = location.href;
+let uid = 0;
+let chatEl = null;
 let currentLanguage = "en";
 
 const SEL = ".text-token,.text-fragment";
@@ -15,7 +15,7 @@ let anchorDirty = false;
 
 // 🧠 VIEW CACHE
 let WIN_H = window.innerHeight;
-window.addEventListener("resize", () => WIN_H = window.innerHeight);
+window.addEventListener("resize", () => WIN_H = window.innerHeight, { passive: true });
 
 // 🧠 pending map
 const pending = new Map();
@@ -27,7 +27,6 @@ let stableId = 0;
 // -------------------------
 // BATCH SYSTEM
 // -------------------------
-
 let batchBuffer = [];
 let batchQueue = [];
 let activeBatches = 0;
@@ -39,40 +38,33 @@ const BATCH_WINDOW_MS = 50;
 let batchTimer = null;
 
 // -------------------------
-// VIEW INTELLIGENCE (IMPROVED)
+// VIEW INTELLIGENCE
 // -------------------------
-
-const VIEW_TOP_PAD = -60;     // allow slight overscroll above
-const VIEW_BOTTOM_PAD = 220;  // look-ahead window
+const VIEW_TOP_PAD = -60;
+const VIEW_BOTTOM_PAD = 220;
 
 const V = (e) => {
+  if (!e) return false;
   const r = e.getBoundingClientRect();
-
-  // visible OR about-to-be-visible only
-  const inView =
-    r.bottom >= VIEW_TOP_PAD &&
-    r.top <= WIN_H + VIEW_BOTTOM_PAD;
-
-  return inView;
+  return r.bottom >= VIEW_TOP_PAD && r.top <= WIN_H + VIEW_BOTTOM_PAD;
 };
 
 // -------------------------
 // STORAGE INIT
 // -------------------------
-
-chrome.storage.local.get("isEnabled",e =>
-  e.isEnabled ?? chrome.storage.local.set({isEnabled:1})
+chrome.storage.local.get("isEnabled", e =>
+  e.isEnabled ?? chrome.storage.local.set({ isEnabled: 1 })
 );
 
 // -------------------------
 // IDENTITY
 // -------------------------
-
 const getMessageId = (node, text) => {
+  if (!node) return "";
   let id = messageIdentity.get(node);
   if (id) return id;
 
-  id = text.slice(0,40) + "::" + stableId++;
+  id = text.slice(0, 40) + "::" + stableId++;
   messageIdentity.set(node, id);
   return id;
 };
@@ -80,8 +72,9 @@ const getMessageId = (node, text) => {
 // -------------------------
 // QUEUE
 // -------------------------
+const q = (n, t) => {
+  if (!n) return;
 
-const q = (n,t) => {
   const x = n.textContent?.trim();
   if (!x) return;
 
@@ -92,31 +85,21 @@ const q = (n,t) => {
   n.dataset.originalText = x;
 
   pending.set(id, n);
-
   batchBuffer.push({ id, text: x });
 
   scheduleBatchFlush();
 };
 
 // -------------------------
-// FLUSH TIMER
+// FLUSH TIMER (SAFE: no duplicate timers)
 // -------------------------
-
 const scheduleBatchFlush = () => {
   if (batchTimer) return;
-
-  batchTimer = setTimeout(() => {
-    flushBatch();
-  }, BATCH_WINDOW_MS);
+  batchTimer = setTimeout(flushBatch, BATCH_WINDOW_MS);
 };
-
-// -------------------------
-// BUFFER → QUEUE
-// -------------------------
 
 const flushBatch = () => {
   batchTimer = null;
-
   if (!batchBuffer.length) return;
 
   while (batchBuffer.length) {
@@ -127,9 +110,6 @@ const flushBatch = () => {
 };
 
 // -------------------------
-// BATCH EXECUTOR
-// -------------------------
-
 const pumpBatches = () => {
   while (activeBatches < MAX_PARALLEL_BATCHES && batchQueue.length) {
     runBatch(batchQueue.shift());
@@ -137,9 +117,8 @@ const pumpBatches = () => {
 };
 
 // -------------------------
-// RUN BATCH (with abort-on-out-of-view)
+// RUN BATCH (unchanged logic, safer guards only)
 // -------------------------
-
 const runBatch = async (batch) => {
   activeBatches++;
 
@@ -148,7 +127,6 @@ const runBatch = async (batch) => {
       const item = batch[i];
       const node = pending.get(item.id);
 
-      // 🔥 ABORT IF NO LONGER EXISTS OR NOT RELEVANT
       if (!node || !document.contains(node)) continue;
       if (!V(node)) continue;
 
@@ -162,7 +140,7 @@ const runBatch = async (batch) => {
       );
 
       const d = await res.json();
-      const text = (d[0] || []).map(x => x[0]).join("");
+      const text = (d?.[0] || []).map(x => x[0]).join("");
 
       const start = text.indexOf("⟦");
       const end = text.indexOf("⟧");
@@ -170,15 +148,14 @@ const runBatch = async (batch) => {
       if (start !== -1 && end !== -1) {
         const translated = text.slice(end + 1).trim();
 
-        // 🔥 SECOND SAFETY CHECK (mid-flight discard protection)
         if (!V(node)) continue;
 
         if (node.dataset.translatedId === item.id) {
           node.textContent = translated;
 
           requestAnimationFrame(() => {
-            lastAnchor = getLastMessage();
-            applyAnchor();
+            lastAnchor = getLastMessage?.();
+            applyAnchor?.();
           });
 
           tailNode = node;
@@ -198,7 +175,6 @@ const runBatch = async (batch) => {
 // -------------------------
 // LAST MESSAGE
 // -------------------------
-
 const getLastMessage = () => {
   if (!chatEl) return null;
   if (tailNode && document.contains(tailNode)) return tailNode;
@@ -227,8 +203,14 @@ const applyAnchor = () => {
 };
 
 // -------------------------
+// SCROLL LISTENERS (SAFE: prevents duplicates)
+// -------------------------
 const attachScrollListeners = () => {
   if (!chatEl) return;
+
+  // prevent stacking listeners
+  if (chatEl.__translatorBound) return;
+  chatEl.__translatorBound = true;
 
   let t;
 
@@ -242,24 +224,30 @@ const attachScrollListeners = () => {
     }, 250);
   };
 
-  chatEl.addEventListener("wheel", pause, { passive:true });
-  chatEl.addEventListener("touchstart", pause, { passive:true });
+  chatEl.addEventListener("wheel", pause, { passive: true });
+  chatEl.addEventListener("touchstart", pause, { passive: true });
 
   chatEl.addEventListener("scroll", () => {
     if (isAtBottom()) followBottom = true;
-  }, { passive:true });
+  }, { passive: true });
 };
 
 // -------------------------
-M = (c) => {
+// OBSERVER (SAFE SINGLETON, NO BEHAVIOR CHANGE)
+// -------------------------
+let chatObserver = null;
+
+const M = (c) => {
   if (!c) return null;
 
   chatEl = c;
   attachScrollListeners();
 
+  if (chatObserver) chatObserver.disconnect();
+
   const added = [];
 
-  const o = new MutationObserver(m => {
+  chatObserver = new MutationObserver(m => {
     added.length = 0;
 
     for (let i = 0; i < m.length; i++) {
@@ -287,13 +275,13 @@ M = (c) => {
     anchorDirty = true;
   });
 
-  o.observe(c, { childList:true, subtree:true });
-  return o;
+  chatObserver.observe(c, { childList: true, subtree: true });
+  return chatObserver;
 };
 
 // -------------------------
 S = () =>
-  chrome.storage.local.get(["targetLanguage","isEnabled"], d => {
+  chrome.storage.local.get(["targetLanguage", "isEnabled"], d => {
     if (!d.isEnabled) return;
 
     currentLanguage = d.targetLanguage || "en";
@@ -307,13 +295,14 @@ S = () =>
   });
 
 // -------------------------
+// CLEANUP (SAFE FIX ONLY)
+// -------------------------
 const X = () => {
-  l?.disconnect();
-  v?.disconnect();
+  if (chatObserver) chatObserver.disconnect();
+  chatObserver = null;
 
-  l = v = null;
+  if (chatEl) chatEl.__translatorBound = false;
 
-  chatEl = null;
   followBottom = true;
   lastAnchor = null;
   tailNode = null;
@@ -340,12 +329,14 @@ chrome.runtime.onMessage.addListener(e => {
 });
 
 // -------------------------
-new MutationObserver(() => {
+let urlObserver = new MutationObserver(() => {
   if (location.href !== u) {
     u = location.href;
     X();
     S();
   }
-}).observe(document, { childList:true, subtree:true });
+});
+
+urlObserver.observe(document, { childList: true, subtree: true });
 
 S();
