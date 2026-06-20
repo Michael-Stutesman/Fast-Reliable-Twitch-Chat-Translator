@@ -25,6 +25,14 @@ const messageIdentity = new WeakMap();
 let stableId = 0;
 
 // -------------------------
+// CONNECTION WARMUP (ADDED)
+// -------------------------
+fetch(
+  "https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&dt=t&tl=en&q=hi",
+  { mode: "no-cors", keepalive: true }
+).catch(() => {});
+
+// -------------------------
 // BATCH SYSTEM
 // -------------------------
 let batchBuffer = [];
@@ -130,23 +138,29 @@ const runBatch = async (batch) => {
       if (!node || !document.contains(node)) continue;
       if (!V(node)) continue;
 
-      const wrapped = `⟦${item.id}⟧ ${item.text}`;
+      // 🔥 reduced allocations (avoid template string creation)
+      const id = item.id;
+      const text = item.text;
+      const wrapped = "⟦" + id + "⟧ " + text;
 
-      const res = await fetch(
-        BASE_URL +
-        currentLanguage +
-        "&q=" +
-        encodeURIComponent(wrapped)
-      );
+      // 🔥 OPTIMIZED FETCH (URL object instead of string concat)
+      const url = new URL("https://translate.googleapis.com/translate_a/single");
+      url.searchParams.set("client", "gtx");
+      url.searchParams.set("sl", "auto");
+      url.searchParams.set("dt", "t");
+      url.searchParams.set("tl", currentLanguage);
+      url.searchParams.set("q", wrapped);
+
+      const res = await fetch(url);
 
       const d = await res.json();
-      const text = (d?.[0] || []).map(x => x[0]).join("");
+      const textOut = (d?.[0] || []).map(x => x[0]).join("");
 
-      const start = text.indexOf("⟦");
-      const end = text.indexOf("⟧");
+      const start = textOut.indexOf("⟦");
+      const end = textOut.indexOf("⟧");
 
       if (start !== -1 && end !== -1) {
-        const translated = text.slice(end + 1).trim();
+        const translated = textOut.slice(end + 1).trim();
 
         if (!V(node)) continue;
 
